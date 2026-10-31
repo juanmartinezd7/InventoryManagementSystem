@@ -1,4 +1,41 @@
-﻿// Controls whether the main menu continues running.
+﻿// Store all products currently available in the inventory.
+List<Product> products = new List<Product>();
+
+// Add sample products for testing the inventory system.
+products.Add(new Product
+{
+    Id = 1,
+    Sku = "LAP-001",
+    Name = "Dell Laptop",
+    Category = "Computers",
+    Price = 799.99m,
+    Quantity = 5,
+    ReorderLevel = 2
+});
+
+products.Add(new Product
+{
+    Id = 2,
+    Sku = "MON-001",
+    Name = "24-inch Monitor",
+    Category = "Monitors",
+    Price = 149.99m,
+    Quantity = 8,
+    ReorderLevel = 3
+});
+
+products.Add(new Product
+{
+    Id = 3,
+    Sku = "KEY-001",
+    Name = "USB Keyboard",
+    Category = "Accessories",
+    Price = 29.99m,
+    Quantity = 12,
+    ReorderLevel = 5
+});
+
+// Controls whether the main menu continues running.
 bool running = true;
 
 while (running)
@@ -31,8 +68,22 @@ while (running)
     switch (selection)
     {
         case "1":
-            Console.WriteLine("View All Products selected.");
-            break;
+    Console.WriteLine("ALL PRODUCTS");
+    Console.WriteLine("------------------------------------");
+
+    foreach (Product product in products)
+    {
+        Console.WriteLine($"ID: {product.Id}");
+        Console.WriteLine($"SKU: {product.Sku}");
+        Console.WriteLine($"Name: {product.Name}");
+        Console.WriteLine($"Category: {product.Category}");
+        Console.WriteLine($"Price: ${product.Price:F2}");
+        Console.WriteLine($"Quantity: {product.Quantity}");
+        Console.WriteLine($"Reorder Level: {product.ReorderLevel}");
+        Console.WriteLine("------------------------------------");
+    }
+
+    break;
 
         case "2":
             Console.WriteLine("Add Product selected.");
