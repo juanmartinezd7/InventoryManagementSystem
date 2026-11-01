@@ -76,8 +76,8 @@ while (running)
     break;
 
         case "3":
-            Console.WriteLine("Update Product selected.");
-            break;
+    UpdateProduct(products);
+    break;
 
         case "4":
             Console.WriteLine("Delete Product selected.");
@@ -210,4 +210,105 @@ static void AddProduct(List<Product> products)
 
     Console.WriteLine();
     Console.WriteLine($"Product '{newProduct.Name}' added successfully.");
+}
+
+// Updates an existing product selected by its ID.
+static void UpdateProduct(List<Product> products)
+{
+    Console.WriteLine("UPDATE PRODUCT");
+    Console.WriteLine("------------------------------------");
+
+    Console.Write("Enter product ID to update: ");
+    string? input = Console.ReadLine();
+
+    if (!int.TryParse(input, out int id))
+    {
+        Console.WriteLine("Invalid ID. Please enter a whole number.");
+        return;
+    }
+
+    Product? productToUpdate = products.Find(product => product.Id == id);
+
+    if (productToUpdate == null)
+    {
+        Console.WriteLine($"Product with ID {id} was not found.");
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Updating: {productToUpdate.Name}");
+    Console.WriteLine("Press Enter without typing anything to keep the current value.");
+    Console.WriteLine();
+
+    Console.Write($"SKU ({productToUpdate.Sku}): ");
+    string? sku = Console.ReadLine();
+
+    if (!string.IsNullOrWhiteSpace(sku))
+    {
+        productToUpdate.Sku = sku;
+    }
+
+    Console.Write($"Name ({productToUpdate.Name}): ");
+    string? name = Console.ReadLine();
+
+    if (!string.IsNullOrWhiteSpace(name))
+    {
+        productToUpdate.Name = name;
+    }
+
+    Console.Write($"Category ({productToUpdate.Category}): ");
+    string? category = Console.ReadLine();
+
+    if (!string.IsNullOrWhiteSpace(category))
+    {
+        productToUpdate.Category = category;
+    }
+
+    Console.Write($"Price (${productToUpdate.Price:F2}): ");
+    string? priceInput = Console.ReadLine();
+
+    if (!string.IsNullOrWhiteSpace(priceInput))
+    {
+        if (decimal.TryParse(priceInput, out decimal newPrice) && newPrice >= 0)
+        {
+            productToUpdate.Price = newPrice;
+        }
+        else
+        {
+            Console.WriteLine("Invalid price. The current price was kept.");
+        }
+    }
+
+    Console.Write($"Quantity ({productToUpdate.Quantity}): ");
+    string? quantityInput = Console.ReadLine();
+
+    if (!string.IsNullOrWhiteSpace(quantityInput))
+    {
+        if (int.TryParse(quantityInput, out int newQuantity) && newQuantity >= 0)
+        {
+            productToUpdate.Quantity = newQuantity;
+        }
+        else
+        {
+            Console.WriteLine("Invalid quantity. The current quantity was kept.");
+        }
+    }
+
+    Console.Write($"Reorder Level ({productToUpdate.ReorderLevel}): ");
+    string? reorderInput = Console.ReadLine();
+
+    if (!string.IsNullOrWhiteSpace(reorderInput))
+    {
+        if (int.TryParse(reorderInput, out int newReorderLevel) && newReorderLevel >= 0)
+        {
+            productToUpdate.ReorderLevel = newReorderLevel;
+        }
+        else
+        {
+            Console.WriteLine("Invalid reorder level. The current reorder level was kept.");
+        }
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Product '{productToUpdate.Name}' updated successfully.");
 }
