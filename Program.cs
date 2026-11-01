@@ -68,26 +68,12 @@ while (running)
     switch (selection)
     {
         case "1":
-    Console.WriteLine("ALL PRODUCTS");
-    Console.WriteLine("------------------------------------");
-
-    foreach (Product product in products)
-    {
-        Console.WriteLine($"ID: {product.Id}");
-        Console.WriteLine($"SKU: {product.Sku}");
-        Console.WriteLine($"Name: {product.Name}");
-        Console.WriteLine($"Category: {product.Category}");
-        Console.WriteLine($"Price: ${product.Price:F2}");
-        Console.WriteLine($"Quantity: {product.Quantity}");
-        Console.WriteLine($"Reorder Level: {product.ReorderLevel}");
-        Console.WriteLine("------------------------------------");
-    }
-
+    DisplayProducts(products);
     break;
 
         case "2":
-            Console.WriteLine("Add Product selected.");
-            break;
+    AddProduct(products);
+    break;
 
         case "3":
             Console.WriteLine("Update Product selected.");
@@ -126,4 +112,102 @@ while (running)
             Console.WriteLine("Invalid selection. Please enter a number from 0 to 9.");
             break;
     }
+}
+
+// Displays all products currently stored in the inventory.
+static void DisplayProducts(List<Product> products)
+{
+    Console.WriteLine("ALL PRODUCTS");
+    Console.WriteLine("------------------------------------");
+
+    foreach (Product product in products)
+    {
+        Console.WriteLine($"ID: {product.Id}");
+        Console.WriteLine($"SKU: {product.Sku}");
+        Console.WriteLine($"Name: {product.Name}");
+        Console.WriteLine($"Category: {product.Category}");
+        Console.WriteLine($"Price: ${product.Price:F2}");
+        Console.WriteLine($"Quantity: {product.Quantity}");
+        Console.WriteLine($"Reorder Level: {product.ReorderLevel}");
+        Console.WriteLine("------------------------------------");
+    }
+}
+
+// Adds a new product to the inventory using information entered by the user.
+static void AddProduct(List<Product> products)
+{
+    Console.WriteLine("ADD PRODUCT");
+    Console.WriteLine("------------------------------------");
+
+    Console.Write("Enter SKU: ");
+    string? sku = Console.ReadLine();
+
+    Console.Write("Enter product name: ");
+    string? name = Console.ReadLine();
+
+    Console.Write("Enter category: ");
+    string? category = Console.ReadLine();
+
+    decimal price;
+
+    while (true)
+    {
+        Console.Write("Enter price: $");
+        string? input = Console.ReadLine();
+
+        if (decimal.TryParse(input, out price) && price >= 0)
+        {
+            break;
+        }
+
+        Console.WriteLine("Invalid price. Please enter a valid number.");
+    }
+
+    int quantity;
+
+    while (true)
+    {
+        Console.Write("Enter quantity: ");
+        string? input = Console.ReadLine();
+
+        if (int.TryParse(input, out quantity) && quantity >= 0)
+        {
+            break;
+        }
+
+        Console.WriteLine("Invalid quantity. Please enter a whole number.");
+    }
+
+    int reorderLevel;
+
+    while (true)
+    {
+        Console.Write("Enter reorder level: ");
+        string? input = Console.ReadLine();
+
+        if (int.TryParse(input, out reorderLevel) && reorderLevel >= 0)
+        {
+            break;
+        }
+
+        Console.WriteLine("Invalid reorder level. Please enter a whole number.");
+    }
+
+    int newId = products.Count + 1;
+
+    Product newProduct = new Product
+    {
+        Id = newId,
+        Sku = sku ?? "",
+        Name = name ?? "",
+        Category = category ?? "",
+        Price = price,
+        Quantity = quantity,
+        ReorderLevel = reorderLevel
+    };
+
+    products.Add(newProduct);
+
+    Console.WriteLine();
+    Console.WriteLine($"Product '{newProduct.Name}' added successfully.");
 }

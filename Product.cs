@@ -1,3 +1,4 @@
+// Product class representing an item in the inventory.
 public class Product
 {
     public int Id { get; set; }
