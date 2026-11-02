@@ -80,8 +80,8 @@ while (running)
     break;
 
         case "4":
-            Console.WriteLine("Delete Product selected.");
-            break;
+    DeleteProduct(products);
+    break;
 
         case "5":
             Console.WriteLine("Search Products selected.");
@@ -193,7 +193,12 @@ static void AddProduct(List<Product> products)
         Console.WriteLine("Invalid reorder level. Please enter a whole number.");
     }
 
-    int newId = products.Count + 1;
+    int newId = 1;
+
+    if (products.Count > 0)
+    {
+       newId = products.Max(product => product.Id) + 1;
+    }
 
     Product newProduct = new Product
     {
@@ -311,4 +316,48 @@ static void UpdateProduct(List<Product> products)
 
     Console.WriteLine();
     Console.WriteLine($"Product '{productToUpdate.Name}' updated successfully.");
+}
+
+// Deletes an existing product selected by its ID.
+static void DeleteProduct(List<Product> products)
+{
+    Console.WriteLine("DELETE PRODUCT");
+    Console.WriteLine("------------------------------------");
+
+    Console.Write("Enter product ID to delete: ");
+    string? input = Console.ReadLine();
+
+    if (!int.TryParse(input, out int id))
+    {
+        Console.WriteLine("Invalid ID. Please enter a whole number.");
+        return;
+    }
+
+    Product? productToDelete = products.Find(product => product.Id == id);
+
+    if (productToDelete == null)
+    {
+        Console.WriteLine($"Product with ID {id} was not found.");
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine($"Product: {productToDelete.Name}");
+    Console.WriteLine($"SKU: {productToDelete.Sku}");
+    Console.WriteLine($"Price: ${productToDelete.Price:F2}");
+    Console.WriteLine($"Quantity: {productToDelete.Quantity}");
+    Console.WriteLine();
+
+    Console.Write($"Are you sure you want to delete '{productToDelete.Name}'? (y/n): ");
+    string? confirmation = Console.ReadLine();
+
+    if (confirmation?.ToLower() == "y")
+    {
+        products.Remove(productToDelete);
+        Console.WriteLine($"Product '{productToDelete.Name}' deleted successfully.");
+    }
+    else
+    {
+        Console.WriteLine("Delete canceled.");
+    }
 }
