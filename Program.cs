@@ -68,23 +68,23 @@ while (running)
     switch (selection)
     {
         case "1":
-    DisplayProducts(products);
-    break;
+            DisplayProducts(products);
+            break;
 
         case "2":
-    AddProduct(products);
-    break;
+            AddProduct(products);
+            break;
 
         case "3":
-    UpdateProduct(products);
-    break;
+            UpdateProduct(products);
+            break;
 
         case "4":
-    DeleteProduct(products);
-    break;
+            DeleteProduct(products);
+            break;
 
         case "5":
-            Console.WriteLine("Search Products selected.");
+            SearchProducts(products);
             break;
 
         case "6":
@@ -122,14 +122,7 @@ static void DisplayProducts(List<Product> products)
 
     foreach (Product product in products)
     {
-        Console.WriteLine($"ID: {product.Id}");
-        Console.WriteLine($"SKU: {product.Sku}");
-        Console.WriteLine($"Name: {product.Name}");
-        Console.WriteLine($"Category: {product.Category}");
-        Console.WriteLine($"Price: ${product.Price:F2}");
-        Console.WriteLine($"Quantity: {product.Quantity}");
-        Console.WriteLine($"Reorder Level: {product.ReorderLevel}");
-        Console.WriteLine("------------------------------------");
+        DisplayProduct(product);
     }
 }
 
@@ -360,4 +353,54 @@ static void DeleteProduct(List<Product> products)
     {
         Console.WriteLine("Delete canceled.");
     }
+}
+
+// Searches for products by name, SKU, or category.
+static void SearchProducts(List<Product> products)
+{
+    Console.WriteLine("SEARCH PRODUCTS");
+    Console.WriteLine("------------------------------------");
+
+    Console.Write("Enter product name, SKU, or category: ");
+    string? searchTerm = Console.ReadLine();
+
+    if (string.IsNullOrWhiteSpace(searchTerm))
+    {
+        Console.WriteLine("Please enter a search term.");
+        return;
+    }
+
+    List<Product> results = products.FindAll(product =>
+        product.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+        product.Sku.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+        product.Category.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+    );
+
+    if (results.Count == 0)
+    {
+        Console.WriteLine($"No products found matching '{searchTerm}'.");
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("SEARCH RESULTS");
+    Console.WriteLine("------------------------------------");
+
+    foreach (Product product in results)
+    {
+        DisplayProduct(product);
+    }
+}
+
+// Displays the details for a single product.
+static void DisplayProduct(Product product)
+{
+    Console.WriteLine($"ID: {product.Id}");
+    Console.WriteLine($"SKU: {product.Sku}");
+    Console.WriteLine($"Name: {product.Name}");
+    Console.WriteLine($"Category: {product.Category}");
+    Console.WriteLine($"Price: ${product.Price:F2}");
+    Console.WriteLine($"Quantity: {product.Quantity}");
+    Console.WriteLine($"Reorder Level: {product.ReorderLevel}");
+    Console.WriteLine("------------------------------------");
 }
