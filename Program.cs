@@ -1,6 +1,9 @@
 ﻿// Load saved inventory when the application starts.
 List<Product> products = InventoryStorage.LoadProducts();
 
+// Stores stock movements during the current application session.
+List<InventoryTransaction> transactions = new List<InventoryTransaction>();
+
 // Create sample products only when no saved inventory file exists.
 if (!File.Exists("inventory.json"))
 {
@@ -61,6 +64,7 @@ while (running)
     Console.WriteLine("7. Remove Stock");
     Console.WriteLine("8. View Low-Stock Products");
     Console.WriteLine("9. View Inventory Value");
+    Console.WriteLine("10. View Transaction History");
     Console.WriteLine("0. Exit");
     Console.WriteLine();
 
@@ -100,13 +104,15 @@ while (running)
             break;
 
         case "6":
-            AddStock(products);
+            // Add stock to an existing product and record the transaction.
+            AddStock(products, transactions);
             // Save the updated inventory after adding stock to a product.
             InventoryStorage.SaveProducts(products);
             break;
 
         case "7":
-            RemoveStock(products);
+            // Remove stock from an existing product and record the transaction.
+            RemoveStock(products, transactions);
             // Save the updated inventory after removing stock from a product.
             InventoryStorage.SaveProducts(products);
             break;
@@ -117,6 +123,10 @@ while (running)
 
         case "9":
             DisplayInventoryValue(products);
+            break;
+
+            case "10":
+            DisplayTransactions(transactions);
             break;
 
         // Save the inventory and exit the application.
@@ -514,7 +524,9 @@ static void DisplayProduct(Product product)
 }
 
 // Increases the quantity of an existing product.
-static void AddStock(List<Product> products)
+static void AddStock(
+    List<Product> products,
+    List<InventoryTransaction> transactions)
 {
     // Display the title for the Add Stock section.
     Console.WriteLine("ADD STOCK");
@@ -566,12 +578,25 @@ static void AddStock(List<Product> products)
     // Increase the product's quantity by the specified amount.
     product.Quantity += amount;
 
+    // Record the stock addition.
+InventoryTransaction transaction = new InventoryTransaction
+{
+    ProductId = product.Id,
+    QuantityChanged = amount,
+    TransactionType = "ADD",
+    TransactionDate = DateTime.Now
+};
+
+transactions.Add(transaction);
+
     // Display a message confirming that the stock was added successfully.
     Console.WriteLine($"Stock added successfully. New quantity: {product.Quantity}");
 }
 
 // Decreases the quantity of an existing product without allowing negative stock.
-static void RemoveStock(List<Product> products)
+static void RemoveStock(
+    List<Product> products,
+    List<InventoryTransaction> transactions)
 {
     // Display the title for the Remove Stock section.
     Console.WriteLine("REMOVE STOCK");
@@ -622,6 +647,17 @@ static void RemoveStock(List<Product> products)
 
     // Decrease the product's quantity by the specified amount.
     product.Quantity -= amount;
+
+    // Record the stock removal.
+InventoryTransaction transaction = new InventoryTransaction
+{
+    ProductId = product.Id,
+    QuantityChanged = -amount,
+    TransactionType = "REMOVE",
+    TransactionDate = DateTime.Now
+};
+
+transactions.Add(transaction);
 
     // Display a message confirming that the stock was removed successfully.
     Console.WriteLine($"Stock removed successfully. New quantity: {product.Quantity}");
@@ -683,4 +719,29 @@ static void DisplayInventoryValue(List<Product> products)
     // Display the total inventory value at the end of the report.
     Console.WriteLine("------------------------------------");
     Console.WriteLine($"Total Inventory Value: ${totalValue:F2}");
+}
+
+// Displays stock movements recorded during the current session.
+static void DisplayTransactions(List<InventoryTransaction> transactions)
+{
+    // Display the title for the Transaction History section.
+    Console.WriteLine("TRANSACTION HISTORY");
+    Console.WriteLine("------------------------------------");
+
+    // Check if there are any transactions recorded during the session.
+    if (transactions.Count == 0)
+    {
+        Console.WriteLine("No transactions recorded.");
+        return;
+    }
+
+    // Go through each transaction in the list and display its details.
+    foreach (InventoryTransaction transaction in transactions)
+    {
+        Console.WriteLine($"Product ID: {transaction.ProductId}");
+        Console.WriteLine($"Type: {transaction.TransactionType}");
+        Console.WriteLine($"Quantity Changed: {transaction.QuantityChanged:+#;-#;0}");
+        Console.WriteLine($"Date: {transaction.TransactionDate:g}");
+        Console.WriteLine("------------------------------------");
+    }
 }
