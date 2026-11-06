@@ -96,11 +96,11 @@ while (running)
             break;
 
         case "8":
-            Console.WriteLine("View Low-Stock Products selected.");
+            DisplayLowStockProducts(products);
             break;
 
         case "9":
-            Console.WriteLine("View Inventory Value selected.");
+            DisplayInventoryValue(products);
             break;
 
         case "0":
@@ -606,4 +606,62 @@ static void RemoveStock(List<Product> products)
 
     // Display a message confirming that the stock was removed successfully.
     Console.WriteLine($"Stock removed successfully. New quantity: {product.Quantity}");
+}
+
+// Displays products whose quantities are at or below their reorder levels.
+static void DisplayLowStockProducts(List<Product> products)
+{
+    // Display the title for the Low-Stock Products section.
+    Console.WriteLine("LOW-STOCK PRODUCTS");
+    Console.WriteLine("------------------------------------");
+
+    // Initialize a counter to keep track of the number of low-stock products.
+    int lowStockCount = 0;
+
+    // Go through each product in the inventory to check its stock level.
+    foreach (Product product in products)
+    {
+        if (product.Quantity <= product.ReorderLevel)
+        {
+            DisplayProduct(product);
+            lowStockCount++;
+        }
+    }
+
+    // Display a message indicating whether there are any low-stock products.
+    if (lowStockCount == 0)
+    {
+        Console.WriteLine("All products have sufficient stock.");
+    }
+    else
+    {
+        Console.WriteLine($"Total low-stock products: {lowStockCount}");
+    }
+}
+
+// Calculates and displays the total monetary value of the inventory.
+static void DisplayInventoryValue(List<Product> products)
+{
+    // Display the title for the Inventory Value Report section.
+    Console.WriteLine("INVENTORY VALUE REPORT");
+    Console.WriteLine("------------------------------------");
+
+    // Initialize a variable to keep track of the total inventory value.
+    decimal totalValue = 0;
+
+    // Go through each product in the inventory to calculate its total value.
+    foreach (Product product in products)
+    {
+        decimal productValue = product.Price * product.Quantity;
+
+        Console.WriteLine(
+            $"{product.Name}: {product.Quantity} x ${product.Price:F2} = ${productValue:F2}"
+        );
+
+        totalValue += productValue;
+    }
+
+    // Display the total inventory value at the end of the report.
+    Console.WriteLine("------------------------------------");
+    Console.WriteLine($"Total Inventory Value: ${totalValue:F2}");
 }
