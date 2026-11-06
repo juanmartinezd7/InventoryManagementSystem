@@ -1,6 +1,9 @@
-﻿// Store all products currently available in the inventory.
-List<Product> products = new List<Product>();
+﻿// Load saved inventory when the application starts.
+List<Product> products = InventoryStorage.LoadProducts();
 
+// Create sample products only when no saved inventory file exists.
+if (!File.Exists("inventory.json"))
+{
 // Add sample products for testing the inventory system.
 products.Add(new Product
 {
@@ -34,6 +37,9 @@ products.Add(new Product
     Quantity = 12,
     ReorderLevel = 5
 });
+
+ InventoryStorage.SaveProducts(products);
+}
 
 // Controls whether the main menu continues running.
 bool running = true;
@@ -73,14 +79,20 @@ while (running)
 
         case "2":
             AddProduct(products);
+            // Save the updated inventory after adding a new product.
+            InventoryStorage.SaveProducts(products);
             break;
 
         case "3":
             UpdateProduct(products);
+            // Save the updated inventory after modifying an existing product.
+            InventoryStorage.SaveProducts(products);
             break;
 
         case "4":
             DeleteProduct(products);
+            // Save the updated inventory after deleting a product.
+            InventoryStorage.SaveProducts(products);
             break;
 
         case "5":
@@ -89,10 +101,14 @@ while (running)
 
         case "6":
             AddStock(products);
+            // Save the updated inventory after adding stock to a product.
+            InventoryStorage.SaveProducts(products);
             break;
 
         case "7":
             RemoveStock(products);
+            // Save the updated inventory after removing stock from a product.
+            InventoryStorage.SaveProducts(products);
             break;
 
         case "8":
@@ -103,7 +119,10 @@ while (running)
             DisplayInventoryValue(products);
             break;
 
+        // Save the inventory and exit the application.
         case "0":
+            InventoryStorage.SaveProducts(products);
+            Console.WriteLine("Inventory saved successfully.");
             Console.WriteLine("Thank you for using the Inventory Management System.");
             running = false;
             break;
