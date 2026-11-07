@@ -6,7 +6,7 @@ I developed this software to strengthen my skills as a software engineer by gain
 
 The application uses JSON file storage to preserve product information between sessions. Stock transaction history is recorded during the current session.
 
-[Software Demo Video](http://youtube.link.goes.here)
+[Software Demo Video](https://youtu.be/Z_lHu_Z4DhM)
 
 # Development Environment
 
