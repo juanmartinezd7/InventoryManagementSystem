@@ -481,6 +481,30 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# JSON file
+# .NET build files
+bin/
+obj/
+
+# VS Code local settings
+.vscode/
+
+# Local JSON inventory data
 inventory.json
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+
+# SQLite temporary journal files
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+
+# macOS system files
+.DS_Store
 
