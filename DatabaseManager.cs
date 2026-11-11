@@ -60,4 +60,84 @@ public static class DatabaseManager
 
         Console.WriteLine("Database initialized successfully.");
     }
+
+    // Inserts a new product into the SQLite database.
+    public static void InsertProduct(Product product)
+    {
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection = new SqliteConnection(ConnectionString);
+        connection.Open();
+
+        // SQL command to insert a new product into the Products table.
+        string sql = """
+        INSERT INTO Products
+            (Sku, Name, Category, Price, Quantity, ReorderLevel)
+        VALUES
+            (@Sku, @Name, @Category, @Price, @Quantity, @ReorderLevel);
+        """;
+
+        // Create a command to execute the SQL statement.
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        // Use parameters to safely provide product values.
+        command.Parameters.AddWithValue("@Sku", product.Sku);
+        command.Parameters.AddWithValue("@Name", product.Name);
+        command.Parameters.AddWithValue("@Category", product.Category);
+        command.Parameters.AddWithValue("@Price", Convert.ToDouble(product.Price));
+        command.Parameters.AddWithValue("@Quantity", product.Quantity);
+        command.Parameters.AddWithValue("@ReorderLevel", product.ReorderLevel);
+
+        // Execute the command and get the number of rows affected.
+        int rowsAffected = command.ExecuteNonQuery();
+
+        // Output the result to the console.
+        Console.WriteLine($"Products inserted: {rowsAffected}");
+    }
+
+    // Retrieves all products stored in SQLite.
+    public static void DisplayDatabaseProducts()
+    {
+        using SqliteConnection connection = new SqliteConnection(ConnectionString);
+        connection.Open();
+
+        string sql = """
+        SELECT Id, Sku, Name, Category, Price, Quantity, ReorderLevel
+        FROM Products
+        ORDER BY Id;
+        """;
+
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        Console.WriteLine("\n--- Products from SQLite ---");
+
+        bool foundProducts = false;
+
+        while (reader.Read())
+        {
+            foundProducts = true;
+
+            int id = reader.GetInt32(0);
+            string sku = reader.GetString(1);
+            string name = reader.GetString(2);
+            string category = reader.GetString(3);
+            double price = reader.GetDouble(4);
+            int quantity = reader.GetInt32(5);
+            int reorderLevel = reader.GetInt32(6);
+
+            Console.WriteLine(
+                $"ID: {id} | SKU: {sku} | Name: {name} | " +
+                $"Category: {category} | Price: ${price:F2} | " +
+                $"Quantity: {quantity} | Reorder Level: {reorderLevel}"
+            );
+        }
+
+        if (!foundProducts)
+        {
+            Console.WriteLine("No products found in the database.");
+        }
+    }
 }
