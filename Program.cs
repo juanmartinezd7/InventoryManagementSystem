@@ -1,4 +1,7 @@
-﻿// Load saved inventory when the application starts.
+﻿// Create the SQLite database and tables when the application starts.
+DatabaseManager.InitializeDatabase();
+
+// Load saved inventory when the application starts.
 List<Product> products = InventoryStorage.LoadProducts();
 
 // Stores stock movements during the current application session.
@@ -7,41 +10,41 @@ List<InventoryTransaction> transactions = new List<InventoryTransaction>();
 // Create sample products only when no saved inventory file exists.
 if (!File.Exists("inventory.json"))
 {
-// Add sample products for testing the inventory system.
-products.Add(new Product
-{
-    Id = 1,
-    Sku = "LAP-001",
-    Name = "Dell Laptop",
-    Category = "Computers",
-    Price = 799.99m,
-    Quantity = 5,
-    ReorderLevel = 2
-});
+    // Add sample products for testing the inventory system.
+    products.Add(new Product
+    {
+        Id = 1,
+        Sku = "LAP-001",
+        Name = "Dell Laptop",
+        Category = "Computers",
+        Price = 799.99m,
+        Quantity = 5,
+        ReorderLevel = 2
+    });
 
-products.Add(new Product
-{
-    Id = 2,
-    Sku = "MON-001",
-    Name = "24-inch Monitor",
-    Category = "Monitors",
-    Price = 149.99m,
-    Quantity = 8,
-    ReorderLevel = 3
-});
+    products.Add(new Product
+    {
+        Id = 2,
+        Sku = "MON-001",
+        Name = "24-inch Monitor",
+        Category = "Monitors",
+        Price = 149.99m,
+        Quantity = 8,
+        ReorderLevel = 3
+    });
 
-products.Add(new Product
-{
-    Id = 3,
-    Sku = "KEY-001",
-    Name = "USB Keyboard",
-    Category = "Accessories",
-    Price = 29.99m,
-    Quantity = 12,
-    ReorderLevel = 5
-});
+    products.Add(new Product
+    {
+        Id = 3,
+        Sku = "KEY-001",
+        Name = "USB Keyboard",
+        Category = "Accessories",
+        Price = 29.99m,
+        Quantity = 12,
+        ReorderLevel = 5
+    });
 
- InventoryStorage.SaveProducts(products);
+    InventoryStorage.SaveProducts(products);
 }
 
 // Controls whether the main menu continues running.
@@ -125,7 +128,7 @@ while (running)
             DisplayInventoryValue(products);
             break;
 
-            case "10":
+        case "10":
             DisplayTransactions(transactions);
             break;
 
@@ -579,15 +582,15 @@ static void AddStock(
     product.Quantity += amount;
 
     // Record the stock addition.
-InventoryTransaction transaction = new InventoryTransaction
-{
-    ProductId = product.Id,
-    QuantityChanged = amount,
-    TransactionType = "ADD",
-    TransactionDate = DateTime.Now
-};
+    InventoryTransaction transaction = new InventoryTransaction
+    {
+        ProductId = product.Id,
+        QuantityChanged = amount,
+        TransactionType = "ADD",
+        TransactionDate = DateTime.Now
+    };
 
-transactions.Add(transaction);
+    transactions.Add(transaction);
 
     // Display a message confirming that the stock was added successfully.
     Console.WriteLine($"Stock added successfully. New quantity: {product.Quantity}");
@@ -649,15 +652,15 @@ static void RemoveStock(
     product.Quantity -= amount;
 
     // Record the stock removal.
-InventoryTransaction transaction = new InventoryTransaction
-{
-    ProductId = product.Id,
-    QuantityChanged = -amount,
-    TransactionType = "REMOVE",
-    TransactionDate = DateTime.Now
-};
+    InventoryTransaction transaction = new InventoryTransaction
+    {
+        ProductId = product.Id,
+        QuantityChanged = -amount,
+        TransactionType = "REMOVE",
+        TransactionDate = DateTime.Now
+    };
 
-transactions.Add(transaction);
+    transactions.Add(transaction);
 
     // Display a message confirming that the stock was removed successfully.
     Console.WriteLine($"Stock removed successfully. New quantity: {product.Quantity}");
