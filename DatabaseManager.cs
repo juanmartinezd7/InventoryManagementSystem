@@ -140,4 +140,81 @@ public static class DatabaseManager
             Console.WriteLine("No products found in the database.");
         }
     }
+
+    // Updates the quantity of an existing product in SQLite.
+    public static void UpdateProductQuantity(string sku, int newQuantity)
+    {
+        // Validate that the new quantity is not negative.
+        if (newQuantity < 0)
+        {
+            Console.WriteLine("Quantity cannot be negative.");
+            return;
+        }
+
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection = new SqliteConnection(ConnectionString);
+        connection.Open();
+
+        // SQL command to update the quantity of a product based on its SKU.
+        string sql = """
+        UPDATE Products
+        SET Quantity = @Quantity
+        WHERE Sku = @Sku;
+        """;
+
+        // Create a command to execute the SQL statement.
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        // Use parameters to safely provide the new quantity and SKU values.
+        command.Parameters.AddWithValue("@Quantity", newQuantity);
+        command.Parameters.AddWithValue("@Sku", sku);
+
+        // Execute the command and get the number of rows affected.
+        int rowsAffected = command.ExecuteNonQuery();
+
+        // Output the result to the console based on whether the product was found and updated.
+        if (rowsAffected > 0)
+        {
+            Console.WriteLine("Product quantity updated successfully.");
+        }
+        else
+        {
+            Console.WriteLine("Product not found.");
+        }
+    }
+
+    // Deletes a product from the SQLite database using its SKU.
+    public static void DeleteProduct(string sku)
+    {
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection = new SqliteConnection(ConnectionString);
+        connection.Open();
+
+        // SQL command to delete a product based on its SKU.
+        string sql = """
+        DELETE FROM Products
+        WHERE Sku = @Sku;
+        """;
+
+        // Create a command to execute the SQL statement.
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        // Use a parameter to safely provide the SKU value.
+        command.Parameters.AddWithValue("@Sku", sku);
+
+        // Execute the command and get the number of rows affected.
+        int rowsAffected = command.ExecuteNonQuery();
+
+        // Output the result to the console based on whether the product was found and deleted.
+        if (rowsAffected > 0)
+        {
+            Console.WriteLine("Product deleted successfully.");
+        }
+        else
+        {
+            Console.WriteLine("Product not found.");
+        }
+    }
 }
