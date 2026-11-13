@@ -1,6 +1,9 @@
 ﻿// Create the SQLite database and tables when the application starts.
 DatabaseManager.InitializeDatabase();
 
+
+DatabaseManager.DisplayTransactionHistory();
+
 // Load saved inventory when the application starts.
 List<Product> products = InventoryStorage.LoadProducts();
 

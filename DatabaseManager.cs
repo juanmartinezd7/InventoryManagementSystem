@@ -217,4 +217,107 @@ public static class DatabaseManager
             Console.WriteLine("Product not found.");
         }
     }
+
+    // Inserts an inventory transaction into SQLite.
+    // This method records changes in product quantity, such as sales or restocking.
+    public static void InsertTransaction(
+        int productId,
+        int quantityChanged,
+        string transactionType)
+    {
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection = new SqliteConnection(ConnectionString);
+        connection.Open();
+
+        // Enforce foreign key constraints for this connection.
+        using (SqliteCommand foreignKeysCommand = connection.CreateCommand())
+        {
+            foreignKeysCommand.CommandText = "PRAGMA foreign_keys = ON;";
+            foreignKeysCommand.ExecuteNonQuery();
+        }
+
+        // SQL command to insert a new inventory transaction into the InventoryTransactions table.
+        string sql = """
+        INSERT INTO InventoryTransactions
+            (ProductId, QuantityChanged, TransactionType, TransactionDate)
+        VALUES
+            (@ProductId, @QuantityChanged, @TransactionType, @TransactionDate);
+        """;
+
+        // Create a command to execute the SQL statement.
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        // Use parameters to safely provide transaction values.
+        command.Parameters.AddWithValue("@ProductId", productId);
+        command.Parameters.AddWithValue("@QuantityChanged", quantityChanged);
+        command.Parameters.AddWithValue("@TransactionType", transactionType);
+        command.Parameters.AddWithValue(
+            // Use the current UTC date and time for the transaction date.
+            "@TransactionDate",
+            DateTime.UtcNow.ToString("O")
+        );
+
+        // Execute the command and get the number of rows affected.
+        int rowsAffected = command.ExecuteNonQuery();
+
+        // Output the result to the console.
+        Console.WriteLine($"Transactions inserted: {rowsAffected}");
+    }
+
+    // Displays inventory transactions with product names using SQL JOIN.
+    public static void DisplayTransactionHistory()
+    {
+        using SqliteConnection connection =
+            new SqliteConnection(ConnectionString);
+
+        connection.Open();
+
+        string sql = """
+        SELECT
+            p.Name,
+            p.Sku,
+            t.TransactionType,
+            t.QuantityChanged,
+            t.TransactionDate
+        FROM InventoryTransactions AS t
+        INNER JOIN Products AS p
+            ON t.ProductId = p.Id
+        ORDER BY t.TransactionDate DESC, t.Id DESC;
+        """;
+
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        Console.WriteLine("\n--- SQLite Transaction History ---");
+
+        bool foundTransactions = false;
+
+        while (reader.Read())
+        {
+            foundTransactions = true;
+
+            string productName = reader.GetString(0);
+            string sku = reader.GetString(1);
+            string transactionType = reader.GetString(2);
+            int quantityChanged = reader.GetInt32(3);
+            string transactionDate = reader.GetString(4);
+
+            Console.WriteLine(
+                $"Product: {productName} | " +
+                $"SKU: {sku} | " +
+                $"Type: {transactionType} | " +
+                $"Quantity Changed: {quantityChanged} | " +
+                $"Date: {transactionDate}"
+            );
+        }
+
+        if (!foundTransactions)
+        {
+            Console.WriteLine("No transactions found in the database.");
+        }
+    }
 }
+
