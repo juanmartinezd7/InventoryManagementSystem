@@ -2,8 +2,6 @@
 DatabaseManager.InitializeDatabase();
 
 
-DatabaseManager.DisplayTransactionHistory();
-
 // Load saved inventory when the application starts.
 List<Product> products = InventoryStorage.LoadProducts();
 
@@ -84,13 +82,19 @@ while (running)
     switch (selection)
     {
         case "1":
-            DisplayProducts(products);
+            // Load products from the SQLite database and display them.
+            List<Product> databaseProducts = DatabaseManager.LoadProducts();
+            // Display the products retrieved from the database.
+            DisplayProducts(databaseProducts);
+            // Save the loaded products to the JSON file for consistency.
             break;
 
         case "2":
-            AddProduct(products);
+            // Add a new product to the SQLite database.
+            AddProductToDatabase();
             // Save the updated inventory after adding a new product.
             InventoryStorage.SaveProducts(products);
+            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "3":
@@ -713,12 +717,15 @@ static void DisplayInventoryValue(List<Product> products)
     // Go through each product in the inventory to calculate its total value.
     foreach (Product product in products)
     {
+        // Calculate the total value of the product by multiplying its price by its quantity.
         decimal productValue = product.Price * product.Quantity;
 
+        // Display the product's name, quantity, price, and total value in a formatted manner.
         Console.WriteLine(
             $"{product.Name}: {product.Quantity} x ${product.Price:F2} = ${productValue:F2}"
         );
 
+        // Add the product's total value to the overall inventory value.
         totalValue += productValue;
     }
 
@@ -749,5 +756,79 @@ static void DisplayTransactions(List<InventoryTransaction> transactions)
         Console.WriteLine($"Quantity Changed: {transaction.QuantityChanged:+#;-#;0}");
         Console.WriteLine($"Date: {transaction.TransactionDate:g}");
         Console.WriteLine("------------------------------------");
+    }
+
+
+}
+
+static void AddProductToDatabase()
+{
+    Console.WriteLine("\n--- Add Product to SQLite ---");
+
+    Console.Write("SKU: ");
+    string sku = Console.ReadLine()?.Trim() ?? "";
+
+    Console.Write("Name: ");
+    string name = Console.ReadLine()?.Trim() ?? "";
+
+    Console.Write("Category: ");
+    string category = Console.ReadLine()?.Trim() ?? "";
+
+    Console.Write("Price: ");
+    if (!decimal.TryParse(Console.ReadLine(), out decimal price))
+    {
+        Console.WriteLine("Invalid price.");
+        return;
+    }
+
+    Console.Write("Quantity: ");
+    if (!int.TryParse(Console.ReadLine(), out int quantity))
+    {
+        Console.WriteLine("Invalid quantity.");
+        return;
+    }
+
+    Console.Write("Reorder Level: ");
+    if (!int.TryParse(Console.ReadLine(), out int reorderLevel))
+    {
+        Console.WriteLine("Invalid reorder level.");
+        return;
+    }
+
+    if (string.IsNullOrWhiteSpace(sku) ||
+        string.IsNullOrWhiteSpace(name) ||
+        string.IsNullOrWhiteSpace(category))
+    {
+        Console.WriteLine("SKU, name, and category are required.");
+        return;
+    }
+
+    Product product = new Product
+    {
+        Sku = sku,
+        Name = name,
+        Category = category,
+        Price = price,
+        Quantity = quantity,
+        ReorderLevel = reorderLevel
+    };
+
+    try
+    {
+        int newId = DatabaseManager.InsertProduct(product);
+        Console.WriteLine($"Product added successfully! ID: {newId}");
+    }
+    catch (ArgumentException ex)
+    {
+        Console.WriteLine($"Invalid product: {ex.Message}");
+    }
+    catch (Microsoft.Data.Sqlite.SqliteException ex)
+        when (ex.SqliteErrorCode == 19)
+    {
+        Console.WriteLine("Product could not be added. The SKU may already exist.");
+    }
+    catch (OverflowException)
+    {
+        Console.WriteLine("The price or generated product ID is too large.");
     }
 }
