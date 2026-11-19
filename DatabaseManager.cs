@@ -397,5 +397,56 @@ public static class DatabaseManager
         // Return the list of products retrieved from the database.
         return products;
     }
+    // Updates an existing product in SQLite.
+    public static bool UpdateProduct(Product product)
+    {
+        // Validate the product information before updating.
+        if (string.IsNullOrWhiteSpace(product.Sku) ||
+            string.IsNullOrWhiteSpace(product.Name) ||
+            string.IsNullOrWhiteSpace(product.Category) ||
+            product.Price < 0 ||
+            product.Price != decimal.Round(product.Price, 2) ||
+            product.Quantity < 0 ||
+            product.ReorderLevel < 0)
+        {
+            // Throw an exception if the product information is invalid.
+            throw new ArgumentException("Invalid product information.");
+        }
+        // Convert the product price to cents for storage in the database.
+        long priceCents = checked((long)(product.Price * 100m));
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection =
+            new SqliteConnection(ConnectionString);
+
+        connection.Open();
+        // SQL command to update the product information in the Products table based on the product ID.
+        string sql = """
+        UPDATE Products
+        SET
+            Sku = @Sku,
+            Name = @Name,
+            Category = @Category,
+            PriceCents = @PriceCents,
+            Quantity = @Quantity,
+            ReorderLevel = @ReorderLevel
+        WHERE Id = @Id;
+        """;
+        // Create a command to execute the SQL statement.
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        command.Parameters.AddWithValue("@Id", product.Id);
+        command.Parameters.AddWithValue("@Sku", product.Sku);
+        command.Parameters.AddWithValue("@Name", product.Name);
+        command.Parameters.AddWithValue("@Category", product.Category);
+        command.Parameters.AddWithValue("@PriceCents", priceCents);
+        command.Parameters.AddWithValue("@Quantity", product.Quantity);
+        command.Parameters.AddWithValue("@ReorderLevel", product.ReorderLevel);
+
+        // Execute the command and get the number of rows affected.
+        int rowsAffected = command.ExecuteNonQuery();
+
+        return rowsAffected > 0;
+    }
 }
 

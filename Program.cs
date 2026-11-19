@@ -98,9 +98,11 @@ while (running)
             break;
 
         case "3":
-            UpdateProduct(products);
+            // Update an existing product in the SQLite database.
+            UpdateProductInDatabase();
             // Save the updated inventory after modifying an existing product.
             InventoryStorage.SaveProducts(products);
+            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "4":
@@ -280,7 +282,7 @@ static void AddProduct(List<Product> products)
 
 
 // This function updates an existing product in the inventory.
-static void UpdateProduct(List<Product> products)
+static void UpdateProductInDatabase()
 {
     // Display the title for the Update Product section.
     Console.WriteLine("UPDATE PRODUCT");
@@ -299,7 +301,10 @@ static void UpdateProduct(List<Product> products)
     }
 
     // Search the inventory list for a product that matches the entered ID.
-    Product? productToUpdate = products.Find(product => product.Id == id);
+    List<Product> databaseProducts = DatabaseManager.LoadProducts();
+
+    Product? productToUpdate =
+        databaseProducts.Find(product => product.Id == id);
 
     // Check if the product was found in the inventory.
     if (productToUpdate == null)
@@ -353,7 +358,9 @@ static void UpdateProduct(List<Product> products)
     if (!string.IsNullOrWhiteSpace(priceInput))
     {
         // Check that the new price is a valid number and is not negative.
-        if (decimal.TryParse(priceInput, out decimal newPrice) && newPrice >= 0)
+        if (decimal.TryParse(priceInput, out decimal newPrice) &&
+            newPrice >= 0 &&
+            newPrice == decimal.Round(newPrice, 2))
         {
             // Update the product's price with the new value.
             productToUpdate.Price = newPrice;
@@ -405,11 +412,44 @@ static void UpdateProduct(List<Product> products)
         }
     }
 
-    // Display a message confirming that the product update is complete.
-    Console.WriteLine();
-    Console.WriteLine($"Product '{productToUpdate.Name}' updated successfully.");
-}
+    // Attempt to update the product in the SQLite database and handle potential exceptions.
+    // Display a message indicating whether the update was successful or if there were any issues.
+    try
+    {
+        bool updated = DatabaseManager.UpdateProduct(productToUpdate);
 
+        Console.WriteLine();
+
+        if (updated)
+        {
+            Console.WriteLine(
+                $"Product '{productToUpdate.Name}' updated successfully in SQLite."
+            );
+        }
+        else
+        {
+            Console.WriteLine("Product was not found in the database.");
+        }
+    }
+    // Handle specific exceptions that may occur during the update process.
+    catch (ArgumentException ex)
+    {
+        Console.WriteLine($"Invalid product: {ex.Message}");
+    }
+    // Handle SQLite constraint violations, such as duplicate SKUs.
+    catch (Microsoft.Data.Sqlite.SqliteException ex)
+        when (ex.SqliteErrorCode == 19)
+    {
+        Console.WriteLine(
+            "Update failed. The SKU may already exist or a database constraint was violated."
+        );
+    }
+    // Handle cases where the product price is too large to be stored in the database.
+    catch (OverflowException)
+    {
+        Console.WriteLine("The product price is too large.");
+    }
+}
 
 
 // This function deletes an existing product from the inventory.
@@ -760,41 +800,43 @@ static void DisplayTransactions(List<InventoryTransaction> transactions)
 
 
 }
-
+// Adds a new product to the SQLite database.
 static void AddProductToDatabase()
 {
+    // Display the title for the Add Product to SQLite section.
     Console.WriteLine("\n--- Add Product to SQLite ---");
-
+    // Prompt the user for product details.
     Console.Write("SKU: ");
     string sku = Console.ReadLine()?.Trim() ?? "";
-
+    // Validate that the SKU is not empty.
     Console.Write("Name: ");
     string name = Console.ReadLine()?.Trim() ?? "";
-
+    // Validate that the name is not empty.
     Console.Write("Category: ");
     string category = Console.ReadLine()?.Trim() ?? "";
-
+    // Validate that the category is not empty.
     Console.Write("Price: ");
     if (!decimal.TryParse(Console.ReadLine(), out decimal price))
     {
+        // Display an error message and exit if the price is invalid.
         Console.WriteLine("Invalid price.");
         return;
     }
-
+    // Validate that the price is a valid decimal number.
     Console.Write("Quantity: ");
     if (!int.TryParse(Console.ReadLine(), out int quantity))
     {
         Console.WriteLine("Invalid quantity.");
         return;
     }
-
+    // Validate that the quantity is a valid integer.
     Console.Write("Reorder Level: ");
     if (!int.TryParse(Console.ReadLine(), out int reorderLevel))
     {
         Console.WriteLine("Invalid reorder level.");
         return;
     }
-
+    // Validate that the reorder level is a valid integer.
     if (string.IsNullOrWhiteSpace(sku) ||
         string.IsNullOrWhiteSpace(name) ||
         string.IsNullOrWhiteSpace(category))
@@ -802,7 +844,7 @@ static void AddProductToDatabase()
         Console.WriteLine("SKU, name, and category are required.");
         return;
     }
-
+    // Create a new Product object with the provided details.
     Product product = new Product
     {
         Sku = sku,
@@ -812,7 +854,7 @@ static void AddProductToDatabase()
         Quantity = quantity,
         ReorderLevel = reorderLevel
     };
-
+    // Attempt to insert the product into the SQLite database and handle potential exceptions.
     try
     {
         int newId = DatabaseManager.InsertProduct(product);
