@@ -114,7 +114,9 @@ while (running)
             break;
 
         case "5":
-            SearchProducts(products);
+            // Search for products in the SQLite database based on user input.
+            SearchProductsFromDatabase();
+            // Save the updated inventory after searching for products.
             break;
 
         case "6":
@@ -513,8 +515,8 @@ static void DeleteProduct(List<Product> products)
 }
 
 
-// This function searches for products in the inventory by name, SKU, or category.
-static void SearchProducts(List<Product> products)
+// This function searches for products in the inventory based on a user-provided search term.
+static void SearchProductsFromDatabase()
 {
     // Display the title for the Search Products section.
     Console.WriteLine("SEARCH PRODUCTS");
@@ -533,12 +535,8 @@ static void SearchProducts(List<Product> products)
     }
 
     // Search the inventory for products that match the entered search term.
-    // Check the product name, SKU, and category without considering uppercase or lowercase letters.
-    List<Product> results = products.FindAll(product =>
-        product.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-        product.Sku.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-        product.Category.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-    );
+    List<Product> results = DatabaseManager.SearchProducts(searchTerm.Trim());
+
 
     // Check if the search returned any matching products.
     if (results.Count == 0)
