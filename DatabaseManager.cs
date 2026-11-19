@@ -28,7 +28,8 @@ public static class DatabaseManager
                 Category TEXT NOT NULL,
                 PriceCents INTEGER NOT NULL CHECK (PriceCents >= 0),
                 Quantity INTEGER NOT NULL CHECK (Quantity >= 0),
-                ReorderLevel INTEGER NOT NULL CHECK (ReorderLevel >= 0)
+                ReorderLevel INTEGER NOT NULL CHECK (ReorderLevel >= 0),
+                IsActive INTEGER NOT NULL DEFAULT 1 CHECK (IsActive IN (0, 1))
             );
             """;
 
@@ -366,6 +367,7 @@ public static class DatabaseManager
         string sql = """
         SELECT Id, Sku, Name, Category, PriceCents, Quantity, ReorderLevel
         FROM Products
+        WHERE IsActive = 1
         ORDER BY Id;
         """;
 
@@ -429,7 +431,7 @@ public static class DatabaseManager
             PriceCents = @PriceCents,
             Quantity = @Quantity,
             ReorderLevel = @ReorderLevel
-        WHERE Id = @Id;
+        WHERE Id = @Id AND IsActive = 1;
         """;
         // Create a command to execute the SQL statement.
         using SqliteCommand command = connection.CreateCommand();
@@ -443,6 +445,30 @@ public static class DatabaseManager
         command.Parameters.AddWithValue("@Quantity", product.Quantity);
         command.Parameters.AddWithValue("@ReorderLevel", product.ReorderLevel);
 
+        // Execute the command and get the number of rows affected.
+        int rowsAffected = command.ExecuteNonQuery();
+
+        return rowsAffected > 0;
+    }
+    // Soft deletes a product by setting its IsActive flag to 0.
+    public static bool SoftDeleteProduct(int id)
+    {
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection =
+            new SqliteConnection(ConnectionString);
+
+        connection.Open();
+        // SQL command to soft delete a product by updating its IsActive flag to 0.
+        string sql = """
+        UPDATE Products
+        SET IsActive = 0
+        WHERE Id = @Id AND IsActive = 1;
+        """;
+        // Create a command to execute the SQL statement.
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+        // Use a parameter to safely provide the product ID value.
+        command.Parameters.AddWithValue("@Id", id);
         // Execute the command and get the number of rows affected.
         int rowsAffected = command.ExecuteNonQuery();
 

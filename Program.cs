@@ -106,9 +106,11 @@ while (running)
             break;
 
         case "4":
-            DeleteProduct(products);
+            // Delete an existing product from the SQLite database.
+            DeleteProductFromDatabase();
             // Save the updated inventory after deleting a product.
             InventoryStorage.SaveProducts(products);
+            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "5":
@@ -872,5 +874,70 @@ static void AddProductToDatabase()
     catch (OverflowException)
     {
         Console.WriteLine("The price or generated product ID is too large.");
+    }
+}
+
+// Deletes an existing product from the SQLite database.
+static void DeleteProductFromDatabase()
+{
+    // Display the title for the Delete Product from SQLite section.
+    Console.WriteLine("\nDELETE PRODUCT");
+    Console.WriteLine("------------------------------------");
+
+    // Prompt the user to enter the ID of the product they want to delete.
+    Console.Write("Enter product ID to delete: ");
+    string? input = Console.ReadLine();
+
+    // Check if the entered ID is a valid whole number.
+    if (!int.TryParse(input, out int id))
+    {
+        Console.WriteLine("Invalid ID. Please enter a whole number.");
+        return;
+    }
+
+    // Load the list of products from the SQLite database.
+    List<Product> databaseProducts = DatabaseManager.LoadProducts();
+
+    // Search for the product with the specified ID in the database.
+    Product? productToDelete =
+        databaseProducts.Find(product => product.Id == id);
+
+    // Check if the product was found in the database.
+    if (productToDelete == null)
+    {
+        Console.WriteLine($"Active product with ID {id} was not found.");
+        return;
+    }
+
+    // Display the product's details before confirming deletion.
+    Console.WriteLine();
+    Console.WriteLine($"Product: {productToDelete.Name}");
+    Console.WriteLine($"SKU: {productToDelete.Sku}");
+    Console.WriteLine($"Quantity: {productToDelete.Quantity}");
+
+    // Ask the user to confirm if they want to delete the selected product.
+    Console.Write("\nAre you sure you want to delete this product? (y/n): ");
+    string? confirmation = Console.ReadLine()?.Trim();
+
+    // Check if the user entered "y" to confirm the deletion.
+    if (!string.Equals(confirmation, "y", StringComparison.OrdinalIgnoreCase))
+    {
+        Console.WriteLine("Deletion canceled.");
+        return;
+    }
+
+    //  Attempt to perform a soft delete of the product in the SQLite database.
+    bool deleted = DatabaseManager.SoftDeleteProduct(id);
+
+    // Display a message indicating whether the product was deactivated successfully or if there were any issues.
+    if (deleted)
+    {
+        Console.WriteLine(
+            $"Product '{productToDelete.Name}' was deactivated successfully."
+        );
+    }
+    else
+    {
+        Console.WriteLine("Product could not be deactivated.");
     }
 }
