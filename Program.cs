@@ -120,10 +120,11 @@ while (running)
             break;
 
         case "6":
-            // Add stock to an existing product and record the transaction.
-            AddStock(products, transactions);
+            // Add stock to an existing product in the SQLite database and record the transaction.
+            AddStockToDatabase();
             // Save the updated inventory after adding stock to a product.
             InventoryStorage.SaveProducts(products);
+            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "7":
@@ -573,10 +574,8 @@ static void DisplayProduct(Product product)
     Console.WriteLine("------------------------------------");
 }
 
-// Increases the quantity of an existing product.
-static void AddStock(
-    List<Product> products,
-    List<InventoryTransaction> transactions)
+// Increases the quantity of an existing product without allowing overflow.
+static void AddStockToDatabase()
 {
     // Display the title for the Add Stock section.
     Console.WriteLine("ADD STOCK");
@@ -593,8 +592,10 @@ static void AddStock(
         return;
     }
 
-    // Search for the product with the specified ID.
-    Product? product = products.Find(p => p.Id == id);
+    // Load the list of products from the SQLite database.
+    List<Product> databaseProducts = DatabaseManager.LoadProducts();
+
+    Product? product = databaseProducts.Find(p => p.Id == id);
 
     // Check if the product was found in the inventory.
     if (product == null)
@@ -625,22 +626,31 @@ static void AddStock(
         return;
     }
 
-    // Increase the product's quantity by the specified amount.
-    product.Quantity += amount;
-
-    // Record the stock addition.
-    InventoryTransaction transaction = new InventoryTransaction
+    // Increase the product's quantity by the specified amount and update the database.
+    bool stockAdded = DatabaseManager.AddStock(product.Id, amount);
+    // Check if the stock was added successfully and display the new quantity or an error message.
+    if (stockAdded)
     {
-        ProductId = product.Id,
-        QuantityChanged = amount,
-        TransactionType = "ADD",
-        TransactionDate = DateTime.Now
-    };
-
-    transactions.Add(transaction);
-
-    // Display a message confirming that the stock was added successfully.
-    Console.WriteLine($"Stock added successfully. New quantity: {product.Quantity}");
+        // Reload the product to get its updated quantity.
+        List<Product> updatedProducts = DatabaseManager.LoadProducts();
+        // Find the updated product in the list of products.
+        Product? updatedProduct =
+            updatedProducts.Find(p => p.Id == product.Id);
+        // Display the new quantity if the product was found.
+        if (updatedProduct != null)
+        {
+            Console.WriteLine(
+                $"Stock added successfully. New quantity: {updatedProduct.Quantity}"
+            );
+        }
+    }
+    else
+    {
+        // Display an error message if the stock could not be added due to constraints or issues.
+        Console.WriteLine(
+            "Stock could not be added. The product may be inactive, missing, or exceed the quantity limit."
+        );
+    }
 }
 
 // Decreases the quantity of an existing product without allowing negative stock.
