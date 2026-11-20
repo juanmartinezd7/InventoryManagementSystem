@@ -725,5 +725,37 @@ public static class DatabaseManager
 
         return lowStockProducts;
     }
+    // Calculates the total value of the inventory in dollars.
+    public static decimal GetTotalInventoryValue()
+    {
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection =
+            new SqliteConnection(ConnectionString);
+
+        connection.Open();
+        // SQL command to calculate the total value of the inventory by summing the product of price and quantity for all active products.
+        string sql = """
+        SELECT PriceCents, Quantity
+        FROM Products
+        WHERE IsActive = 1;
+        """;
+        // Create a command to execute the SQL statement.
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+        // Execute the command and obtain a reader to read the result set.
+        using SqliteDataReader reader = command.ExecuteReader();
+        // Initialize a variable to hold the total value in cents.
+        decimal totalCents = 0m;
+        // Read each product record from the result set and calculate the total value.
+        while (reader.Read())
+        {
+            long priceCents = reader.GetInt64(0);
+            int quantity = reader.GetInt32(1);
+
+            totalCents += (decimal)priceCents * quantity;
+        }
+        // Convert the total value from cents to dollars and return it.
+        return totalCents / 100m;
+    }
 }
 

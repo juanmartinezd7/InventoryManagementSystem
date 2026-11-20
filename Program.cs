@@ -142,7 +142,9 @@ while (running)
             break;
 
         case "9":
-            DisplayInventoryValue(products);
+            // Display the total value of the inventory based on product prices and quantities from the SQLite database.
+            DisplayInventoryValueFromDatabase();
+            // Save the updated inventory after displaying the inventory value.
             break;
 
         case "10":
@@ -759,30 +761,29 @@ static void DisplayLowStockProductsFromDatabase()
     );
 }
 
-// Calculates and displays the total monetary value of the inventory.
-static void DisplayInventoryValue(List<Product> products)
+// Displays the total value of the inventory based on product prices and quantities.
+static void DisplayInventoryValueFromDatabase()
 {
     // Display the title for the Inventory Value Report section.
     Console.WriteLine("INVENTORY VALUE REPORT");
     Console.WriteLine("------------------------------------");
 
-    // Initialize a variable to keep track of the total inventory value.
-    decimal totalValue = 0;
+    // Load active products from SQLite.
+    List<Product> products = DatabaseManager.LoadProducts();
 
-    // Go through each product in the inventory to calculate its total value.
+    // Display each product's inventory value.
     foreach (Product product in products)
     {
-        // Calculate the total value of the product by multiplying its price by its quantity.
+        // Calculate the total value of the product based on its price and quantity.
         decimal productValue = product.Price * product.Quantity;
-
         // Display the product's name, quantity, price, and total value in a formatted manner.
         Console.WriteLine(
             $"{product.Name}: {product.Quantity} x ${product.Price:F2} = ${productValue:F2}"
         );
-
-        // Add the product's total value to the overall inventory value.
-        totalValue += productValue;
     }
+
+    // Calculate the total using DatabaseManager.
+    decimal totalValue = DatabaseManager.GetTotalInventoryValue();
 
     // Display the total inventory value at the end of the report.
     Console.WriteLine("------------------------------------");
