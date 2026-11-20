@@ -681,5 +681,49 @@ public static class DatabaseManager
 
         return true;
     }
+    // Retrieves products that are low in stock based on their reorder level.
+    public static List<Product> GetLowStockProducts()
+    {
+        // Create a list to hold the low stock products retrieved from the database.
+        List<Product> lowStockProducts = new List<Product>();
+
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection =
+            new SqliteConnection(ConnectionString);
+
+        connection.Open();
+
+        // SQL command to select products that are low in stock based on their reorder level.
+        string sql = """
+        SELECT Id, Sku, Name, Category, PriceCents, Quantity, ReorderLevel
+        FROM Products
+        WHERE IsActive = 1
+          AND Quantity <= ReorderLevel
+        ORDER BY Quantity ASC;
+        """;
+        // Create a command to execute the SQL statement.
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+        // Execute the command and obtain a reader to read the result set.
+        using SqliteDataReader reader = command.ExecuteReader();
+        // Read each product record from the result set and create Product objects for the low stock products.
+        while (reader.Read())
+        {
+            Product product = new Product
+            {
+                Id = reader.GetInt32(0),
+                Sku = reader.GetString(1),
+                Name = reader.GetString(2),
+                Category = reader.GetString(3),
+                Price = reader.GetInt64(4) / 100m,
+                Quantity = reader.GetInt32(5),
+                ReorderLevel = reader.GetInt32(6)
+            };
+            // Add the newly created Product object to the low stock products list.
+            lowStockProducts.Add(product);
+        }
+
+        return lowStockProducts;
+    }
 }
 

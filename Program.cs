@@ -136,7 +136,9 @@ while (running)
             break;
 
         case "8":
-            DisplayLowStockProducts(products);
+            // Display products that are low in stock based on their reorder level from the SQLite database.
+            DisplayLowStockProductsFromDatabase();
+            // Save the updated inventory after displaying low-stock products.
             break;
 
         case "9":
@@ -732,35 +734,29 @@ static void RemoveStockFromDatabase()
     }
 }
 
-// Displays products whose quantities are at or below their reorder levels.
-static void DisplayLowStockProducts(List<Product> products)
+// Displays products that are low in stock based on their reorder level.
+static void DisplayLowStockProductsFromDatabase()
 {
     // Display the title for the Low-Stock Products section.
     Console.WriteLine("LOW-STOCK PRODUCTS");
     Console.WriteLine("------------------------------------");
-
-    // Initialize a counter to keep track of the number of low-stock products.
-    int lowStockCount = 0;
-
-    // Go through each product in the inventory to check its stock level.
-    foreach (Product product in products)
-    {
-        if (product.Quantity <= product.ReorderLevel)
-        {
-            DisplayProduct(product);
-            lowStockCount++;
-        }
-    }
-
-    // Display a message indicating whether there are any low-stock products.
-    if (lowStockCount == 0)
+    // Retrieve the list of low-stock products from the SQLite database.
+    List<Product> lowStockProducts = DatabaseManager.GetLowStockProducts();
+    // Check if there are any low-stock products to display.
+    if (lowStockProducts.Count == 0)
     {
         Console.WriteLine("All products have sufficient stock.");
+        return;
     }
-    else
+    // Go through each low-stock product and display its details.
+    foreach (Product product in lowStockProducts)
     {
-        Console.WriteLine($"Total low-stock products: {lowStockCount}");
+        DisplayProduct(product);
     }
+    // Display the total number of low-stock products at the end of the report.
+    Console.WriteLine(
+        $"Total low-stock products: {lowStockProducts.Count}"
+    );
 }
 
 // Calculates and displays the total monetary value of the inventory.
