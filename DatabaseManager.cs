@@ -286,71 +286,6 @@ public static class DatabaseManager
         Console.WriteLine($"Transactions inserted: {rowsAffected}");
     }
 
-    // Displays inventory transactions with product names using SQL JOIN.
-    // This method retrieves and displays the transaction history, including product details.
-    public static void DisplayTransactionHistory()
-    {
-        // Establish a connection to the SQLite database.
-        using SqliteConnection connection =
-            new SqliteConnection(ConnectionString);
-
-        connection.Open();
-        // SQL command to retrieve transaction history with product names using an INNER JOIN.
-        string sql = """
-        SELECT
-            p.Name,
-            p.Sku,
-            t.TransactionType,
-            t.QuantityChanged,
-            t.TransactionDate
-        FROM InventoryTransactions AS t
-        INNER JOIN Products AS p
-            ON t.ProductId = p.Id
-        ORDER BY t.TransactionDate DESC, t.Id DESC;
-        """;
-
-        // Create a command to execute the SQL statement.
-        using SqliteCommand command = connection.CreateCommand();
-        command.CommandText = sql;
-
-        // Execute the command and obtain a reader to read the result set.
-        using SqliteDataReader reader = command.ExecuteReader();
-
-        // Output a header for the transaction history display.
-        Console.WriteLine("\n--- SQLite Transaction History ---");
-
-        // Flag to track if any transactions were found in the database.
-        bool foundTransactions = false;
-
-        // Read and display each transaction record from the result set.
-        while (reader.Read())
-        {
-            // Set the flag to true since at least one transaction was found.
-            foundTransactions = true;
-
-            // Retrieve transaction details from the reader.
-            string productName = reader.GetString(0);
-            string sku = reader.GetString(1);
-            string transactionType = reader.GetString(2);
-            int quantityChanged = reader.GetInt32(3);
-            string transactionDate = reader.GetString(4);
-
-            // Output the transaction details to the console in a formatted manner.
-            Console.WriteLine(
-                $"Product: {productName} | " +
-                $"SKU: {sku} | " +
-                $"Type: {transactionType} | " +
-                $"Quantity Changed: {quantityChanged} | " +
-                $"Date: {transactionDate}"
-            );
-        }
-        // If no transactions were found, output a message indicating that.
-        if (!foundTransactions)
-        {
-            Console.WriteLine("No transactions found in the database.");
-        }
-    }
-
     // Loads products from SQLite into a C# list.
     // This method retrieves all products from the database and returns them as a list of Product objects.
     public static List<Product> LoadProducts()
@@ -756,6 +691,75 @@ public static class DatabaseManager
         }
         // Convert the total value from cents to dollars and return it.
         return totalCents / 100m;
+    }
+
+    // Displays the transaction history with product names and details.
+    public static void DisplayTransactionHistory()
+    {
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection =
+            new SqliteConnection(ConnectionString);
+
+        connection.Open();
+        // SQL command to retrieve transaction history with product names using an INNER JOIN.
+        string sql = """
+        SELECT
+            t.Id,
+            t.ProductId,
+            p.Name,
+            t.TransactionType,
+            t.QuantityChanged,
+            t.TransactionDate
+        FROM InventoryTransactions t
+        INNER JOIN Products p ON t.ProductId = p.Id
+        ORDER BY t.TransactionDate DESC, t.Id DESC;
+        """;
+        // Create a command to execute the SQL statement.
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+        // Execute the command and obtain a reader to read the result set.
+        using SqliteDataReader reader = command.ExecuteReader();
+        // Output a header for the transaction history display.
+        Console.WriteLine("TRANSACTION HISTORY");
+        Console.WriteLine("------------------------------------");
+        // Flag to track if any transactions were found in the database.
+        bool hasTransactions = false;
+        // Read and display each transaction record from the result set.
+        while (reader.Read())
+        {
+            hasTransactions = true;
+
+            int transactionId = reader.GetInt32(0);
+            int productId = reader.GetInt32(1);
+            string productName = reader.GetString(2);
+            string transactionType = reader.GetString(3);
+            int quantityChanged = reader.GetInt32(4);
+            string transactionDateText = reader.GetString(5);
+
+            // Parse the transaction date string into a DateTime object using invariant culture and round-trip kind.
+            DateTime transactionDate = DateTime.Parse(
+                transactionDateText,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.RoundtripKind
+            );
+
+            // Output the transaction details to the console in a formatted manner.
+            Console.WriteLine($"Transaction ID: {transactionId}");
+            Console.WriteLine($"Product ID: {productId}");
+            Console.WriteLine($"Product: {productName}");
+            Console.WriteLine($"Type: {transactionType}");
+            Console.WriteLine(
+                $"Quantity Changed: {quantityChanged:+#;-#;0}"
+            );
+            // Display the transaction date in UTC format for consistency.
+            Console.WriteLine($"Date (UTC): {transactionDate.ToUniversalTime():g}");
+            Console.WriteLine("------------------------------------");
+        }
+        // If no transactions were found, output a message indicating that.
+        if (!hasTransactions)
+        {
+            Console.WriteLine("No transactions recorded.");
+        }
     }
 }
 

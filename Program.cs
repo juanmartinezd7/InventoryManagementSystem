@@ -148,7 +148,8 @@ while (running)
             break;
 
         case "10":
-            DisplayTransactions(transactions);
+            // Display transactions history from the SQLite database
+            DisplayTransactionsFromDatabase();
             break;
 
         // Save the inventory and exit the application.
@@ -790,32 +791,12 @@ static void DisplayInventoryValueFromDatabase()
     Console.WriteLine($"Total Inventory Value: ${totalValue:F2}");
 }
 
-// Displays stock movements recorded during the current session.
-static void DisplayTransactions(List<InventoryTransaction> transactions)
+// Displays stock movements stored permanently in SQLite.
+static void DisplayTransactionsFromDatabase()
 {
-    // Display the title for the Transaction History section.
-    Console.WriteLine("TRANSACTION HISTORY");
-    Console.WriteLine("------------------------------------");
-
-    // Check if there are any transactions recorded during the session.
-    if (transactions.Count == 0)
-    {
-        Console.WriteLine("No transactions recorded.");
-        return;
-    }
-
-    // Go through each transaction in the list and display its details.
-    foreach (InventoryTransaction transaction in transactions)
-    {
-        Console.WriteLine($"Product ID: {transaction.ProductId}");
-        Console.WriteLine($"Type: {transaction.TransactionType}");
-        Console.WriteLine($"Quantity Changed: {transaction.QuantityChanged:+#;-#;0}");
-        Console.WriteLine($"Date: {transaction.TransactionDate:g}");
-        Console.WriteLine("------------------------------------");
-    }
-
-
+    DatabaseManager.DisplayTransactionHistory();
 }
+
 // Adds a new product to the SQLite database.
 static void AddProductToDatabase()
 {
