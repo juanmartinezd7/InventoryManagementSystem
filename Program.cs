@@ -128,10 +128,11 @@ while (running)
             break;
 
         case "7":
-            // Remove stock from an existing product and record the transaction.
-            RemoveStock(products, transactions);
+            // Remove stock from an existing product and record the transaction in the SQLite database.
+            RemoveStockFromDatabase();
             // Save the updated inventory after removing stock from a product.
             InventoryStorage.SaveProducts(products);
+            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "8":
@@ -654,9 +655,7 @@ static void AddStockToDatabase()
 }
 
 // Decreases the quantity of an existing product without allowing negative stock.
-static void RemoveStock(
-    List<Product> products,
-    List<InventoryTransaction> transactions)
+static void RemoveStockFromDatabase()
 {
     // Display the title for the Remove Stock section.
     Console.WriteLine("REMOVE STOCK");
@@ -673,8 +672,10 @@ static void RemoveStock(
         return;
     }
 
-    // Search for the product with the specified ID.
-    Product? product = products.Find(p => p.Id == id);
+    // Load the list of products from the SQLite database.
+    List<Product> databaseProducts = DatabaseManager.LoadProducts();
+
+    Product? product = databaseProducts.Find(p => p.Id == id);
 
     // Check if the product was found in the inventory.
     if (product == null)
@@ -705,22 +706,30 @@ static void RemoveStock(
         return;
     }
 
-    // Decrease the product's quantity by the specified amount.
-    product.Quantity -= amount;
+    // Attempt to decrease the product's quantity by the specified amount and update the database.
+    bool stockRemoved = DatabaseManager.RemoveStock(product.Id, amount);
 
-    // Record the stock removal.
-    InventoryTransaction transaction = new InventoryTransaction
+    // Check if the stock was removed successfully and display the new quantity or an error message.
+    if (stockRemoved)
     {
-        ProductId = product.Id,
-        QuantityChanged = -amount,
-        TransactionType = "REMOVE",
-        TransactionDate = DateTime.Now
-    };
+        List<Product> updatedProducts = DatabaseManager.LoadProducts();
 
-    transactions.Add(transaction);
+        Product? updatedProduct =
+            updatedProducts.Find(p => p.Id == product.Id);
 
-    // Display a message confirming that the stock was removed successfully.
-    Console.WriteLine($"Stock removed successfully. New quantity: {product.Quantity}");
+        if (updatedProduct != null)
+        {
+            Console.WriteLine(
+                $"Stock removed successfully. New quantity: {updatedProduct.Quantity}"
+            );
+        }
+    }
+    else
+    {
+        Console.WriteLine(
+            "Stock could not be removed. The product may be inactive, missing, or have insufficient stock."
+        );
+    }
 }
 
 // Displays products whose quantities are at or below their reorder levels.

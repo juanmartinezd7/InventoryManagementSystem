@@ -608,5 +608,78 @@ public static class DatabaseManager
 
         return true;
     }
+
+    // Removes stock from an existing product in SQLite and records the transaction.
+    public static bool RemoveStock(int productId, int amount)
+    {
+        // Validate that the stock amount to be removed is positive.
+        if (amount <= 0)
+        {
+            throw new ArgumentException("Stock amount must be positive.");
+        }
+        // Establish a connection to the SQLite database.
+        using SqliteConnection connection =
+            new SqliteConnection(ConnectionString);
+
+        connection.Open();
+
+        // Begin an atomic database transaction.
+        using SqliteTransaction transaction = connection.BeginTransaction();
+
+        // Decrease stock only when enough inventory is available.
+        string updateSql = """
+        UPDATE Products
+        SET Quantity = Quantity - @Amount
+        WHERE Id = @ProductId
+          AND IsActive = 1
+          AND Quantity >= @Amount;
+        """;
+        // Create a command to execute the SQL statement for updating the product quantity.
+        using SqliteCommand updateCommand = connection.CreateCommand();
+        updateCommand.Transaction = transaction;
+        updateCommand.CommandText = updateSql;
+
+        // Use parameters to safely provide the amount and product ID values.
+        updateCommand.Parameters.AddWithValue("@Amount", amount);
+        updateCommand.Parameters.AddWithValue("@ProductId", productId);
+
+        // Execute the command and get the number of rows affected.
+        int rowsAffected = updateCommand.ExecuteNonQuery();
+
+        if (rowsAffected == 0)
+        {
+            return false;
+        }
+
+        // Record the stock removal in the same transaction.
+        string insertSql = """
+        INSERT INTO InventoryTransactions
+            (ProductId, TransactionType, QuantityChanged, TransactionDate)
+        VALUES
+            (@ProductId, @TransactionType, @QuantityChanged, @TransactionDate);
+        """;
+
+        // Create a command to execute the SQL statement for inserting the inventory transaction.
+        using SqliteCommand insertCommand = connection.CreateCommand();
+        insertCommand.Transaction = transaction;
+        insertCommand.CommandText = insertSql;
+
+        // Use parameters to safely provide the product ID, transaction type, quantity changed, and transaction date values.
+        insertCommand.Parameters.AddWithValue("@ProductId", productId);
+        insertCommand.Parameters.AddWithValue("@TransactionType", "REMOVE");
+        insertCommand.Parameters.AddWithValue("@QuantityChanged", -amount);
+        insertCommand.Parameters.AddWithValue(
+            "@TransactionDate",
+            DateTime.UtcNow.ToString("O")
+        );
+
+        // Execute the command to insert the inventory transaction.
+        insertCommand.ExecuteNonQuery();
+
+        // Commit only after both operations succeed.
+        transaction.Commit();
+
+        return true;
+    }
 }
 
