@@ -65,21 +65,26 @@ public static class DatabaseManager
     // Inserts a new product into the SQLite database.
     public static int InsertProduct(Product product)
     {
+        // Validate the product information before inserting.
         if (product.Price < 0 ||
             product.Price != decimal.Round(product.Price, 2) ||
             product.Quantity < 0 ||
             product.ReorderLevel < 0)
         {
+            // Throw an exception if the product price or quantity is invalid.
             throw new ArgumentException("Invalid product price or quantity.");
         }
 
+        // Convert the product price to cents for storage in the database.
         long priceCents = checked((long)(product.Price * 100m));
 
+        // Establish a connection to the SQLite database.
         using SqliteConnection connection =
             new SqliteConnection(ConnectionString);
 
         connection.Open();
 
+        // SQL command to insert a new product into the Products table and retrieve the last inserted row ID.
         string sql = """
             INSERT INTO Products
                 (Sku, Name, Category, PriceCents, Quantity, ReorderLevel)
@@ -89,9 +94,11 @@ public static class DatabaseManager
             SELECT last_insert_rowid();
             """;
 
+        // Create a command to execute the SQL statement.
         using SqliteCommand command = connection.CreateCommand();
         command.CommandText = sql;
 
+        // Use parameters to safely provide the product values.
         command.Parameters.AddWithValue("@Sku", product.Sku);
         command.Parameters.AddWithValue("@Name", product.Name);
         command.Parameters.AddWithValue("@Category", product.Category);
@@ -99,6 +106,7 @@ public static class DatabaseManager
         command.Parameters.AddWithValue("@Quantity", product.Quantity);
         command.Parameters.AddWithValue("@ReorderLevel", product.ReorderLevel);
 
+        // Execute the command and retrieve the last inserted row ID.
         long newId = (long)command.ExecuteScalar()!;
 
         return checked((int)newId);
@@ -334,7 +342,7 @@ public static class DatabaseManager
         // Return the list of products retrieved from the database.
         return products;
     }
-    // Updates an existing product in SQLite.
+    // Updates product details without changing stock quantity.
     public static bool UpdateProduct(Product product)
     {
         // Validate the product information before updating.
@@ -343,7 +351,6 @@ public static class DatabaseManager
             string.IsNullOrWhiteSpace(product.Category) ||
             product.Price < 0 ||
             product.Price != decimal.Round(product.Price, 2) ||
-            product.Quantity < 0 ||
             product.ReorderLevel < 0)
         {
             // Throw an exception if the product information is invalid.
@@ -364,7 +371,6 @@ public static class DatabaseManager
             Name = @Name,
             Category = @Category,
             PriceCents = @PriceCents,
-            Quantity = @Quantity,
             ReorderLevel = @ReorderLevel
         WHERE Id = @Id AND IsActive = 1;
         """;
@@ -372,12 +378,12 @@ public static class DatabaseManager
         using SqliteCommand command = connection.CreateCommand();
         command.CommandText = sql;
 
+        // Use parameters to safely provide the product values.
         command.Parameters.AddWithValue("@Id", product.Id);
         command.Parameters.AddWithValue("@Sku", product.Sku);
         command.Parameters.AddWithValue("@Name", product.Name);
         command.Parameters.AddWithValue("@Category", product.Category);
         command.Parameters.AddWithValue("@PriceCents", priceCents);
-        command.Parameters.AddWithValue("@Quantity", product.Quantity);
         command.Parameters.AddWithValue("@ReorderLevel", product.ReorderLevel);
 
         // Execute the command and get the number of rows affected.

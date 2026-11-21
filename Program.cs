@@ -203,25 +203,14 @@ static void UpdateProductInDatabase()
         }
     }
 
-    // Display the current quantity and ask the user to enter a new one.
-    Console.Write($"Quantity ({productToUpdate.Quantity}): ");
-    string? quantityInput = Console.ReadLine();
+    // Display the current quantity without allowing direct changes.
+    Console.WriteLine();
+    Console.WriteLine($"Current Quantity: {productToUpdate.Quantity}");
+    Console.WriteLine(
+        "To change quantity, use Option 6 (Add Stock) or Option 7 (Remove Stock)."
+    );
+    Console.WriteLine();
 
-    // Check if the user entered a new quantity.
-    if (!string.IsNullOrWhiteSpace(quantityInput))
-    {
-        // Check that the new quantity is a whole number and is not negative.
-        if (int.TryParse(quantityInput, out int newQuantity) && newQuantity >= 0)
-        {
-            // Update the product's quantity with the new value.
-            productToUpdate.Quantity = newQuantity;
-        }
-        else
-        {
-            // Display an error message and keep the current quantity if invalid.
-            Console.WriteLine("Invalid quantity. The current quantity was kept.");
-        }
-    }
 
     // Display the current reorder level and ask the user to enter a new one.
     Console.Write($"Reorder Level ({productToUpdate.ReorderLevel}): ");
@@ -247,10 +236,13 @@ static void UpdateProductInDatabase()
     // Display a message indicating whether the update was successful or if there were any issues.
     try
     {
+        // Attempt to update the product in the SQLite database.
         bool updated = DatabaseManager.UpdateProduct(productToUpdate);
 
+        // Add a blank line for better readability in the console output.
         Console.WriteLine();
 
+        // Check if the update was successful and display an appropriate message.
         if (updated)
         {
             Console.WriteLine(
