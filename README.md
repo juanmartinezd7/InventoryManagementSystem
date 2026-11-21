@@ -6,7 +6,7 @@ I developed this software to strengthen my skills as a software engineer by gain
 
 The application uses a SQLite relational database to preserve product information and stock transaction history between sessions. Product prices are stored as integer cents to maintain monetary accuracy. Stock additions and removals are recorded using database transactions to ensure that inventory quantities and transaction history remain consistent. The application also uses soft deletion to preserve historical records when products are removed from the active inventory.
 
-[Software Demo Video](https://youtu.be/Z_lHu_Z4DhM)
+[Software Demo Video](https://youtu.be/GBwl0mCfac4)
 
 # Development Environment
 
