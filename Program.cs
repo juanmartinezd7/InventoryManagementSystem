@@ -1,53 +1,6 @@
 ﻿// Create the SQLite database and tables when the application starts.
 DatabaseManager.InitializeDatabase();
 
-
-// Load saved inventory when the application starts.
-List<Product> products = InventoryStorage.LoadProducts();
-
-// Stores stock movements during the current application session.
-List<InventoryTransaction> transactions = new List<InventoryTransaction>();
-
-// Create sample products only when no saved inventory file exists.
-if (!File.Exists("inventory.json"))
-{
-    // Add sample products for testing the inventory system.
-    products.Add(new Product
-    {
-        Id = 1,
-        Sku = "LAP-001",
-        Name = "Dell Laptop",
-        Category = "Computers",
-        Price = 799.99m,
-        Quantity = 5,
-        ReorderLevel = 2
-    });
-
-    products.Add(new Product
-    {
-        Id = 2,
-        Sku = "MON-001",
-        Name = "24-inch Monitor",
-        Category = "Monitors",
-        Price = 149.99m,
-        Quantity = 8,
-        ReorderLevel = 3
-    });
-
-    products.Add(new Product
-    {
-        Id = 3,
-        Sku = "KEY-001",
-        Name = "USB Keyboard",
-        Category = "Accessories",
-        Price = 29.99m,
-        Quantity = 12,
-        ReorderLevel = 5
-    });
-
-    InventoryStorage.SaveProducts(products);
-}
-
 // Controls whether the main menu continues running.
 bool running = true;
 
@@ -78,90 +31,68 @@ while (running)
 
     Console.WriteLine();
 
-    // Perform an action based on the user's selection.
+
     switch (selection)
     {
         case "1":
-            // Load products from the SQLite database and display them.
+            // Display all active products from SQLite.
             List<Product> databaseProducts = DatabaseManager.LoadProducts();
-            // Display the products retrieved from the database.
             DisplayProducts(databaseProducts);
-            // Save the loaded products to the JSON file for consistency.
             break;
 
         case "2":
-            // Add a new product to the SQLite database.
+            // Add a new product to SQLite.
             AddProductToDatabase();
-            // Save the updated inventory after adding a new product.
-            InventoryStorage.SaveProducts(products);
-            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "3":
-            // Update an existing product in the SQLite database.
+            // Update an existing product in SQLite.
             UpdateProductInDatabase();
-            // Save the updated inventory after modifying an existing product.
-            InventoryStorage.SaveProducts(products);
-            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "4":
-            // Delete an existing product from the SQLite database.
+            // Soft-delete a product in SQLite.
             DeleteProductFromDatabase();
-            // Save the updated inventory after deleting a product.
-            InventoryStorage.SaveProducts(products);
-            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "5":
-            // Search for products in the SQLite database based on user input.
+            // Search active products in SQLite.
             SearchProductsFromDatabase();
-            // Save the updated inventory after searching for products.
             break;
 
         case "6":
-            // Add stock to an existing product in the SQLite database and record the transaction.
+            // Add stock and record the transaction in SQLite.
             AddStockToDatabase();
-            // Save the updated inventory after adding stock to a product.
-            InventoryStorage.SaveProducts(products);
-            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "7":
-            // Remove stock from an existing product and record the transaction in the SQLite database.
+            // Remove stock and record the transaction in SQLite.
             RemoveStockFromDatabase();
-            // Save the updated inventory after removing stock from a product.
-            InventoryStorage.SaveProducts(products);
-            // Save the updated inventory to the SQLite database as well.
             break;
 
         case "8":
-            // Display products that are low in stock based on their reorder level from the SQLite database.
+            // Display low-stock products from SQLite.
             DisplayLowStockProductsFromDatabase();
-            // Save the updated inventory after displaying low-stock products.
             break;
 
         case "9":
-            // Display the total value of the inventory based on product prices and quantities from the SQLite database.
+            // Display the inventory value report.
             DisplayInventoryValueFromDatabase();
-            // Save the updated inventory after displaying the inventory value.
             break;
 
         case "10":
-            // Display transactions history from the SQLite database
+            // Display persistent transaction history.
             DisplayTransactionsFromDatabase();
             break;
 
-        // Save the inventory and exit the application.
         case "0":
-            InventoryStorage.SaveProducts(products);
-            Console.WriteLine("Inventory saved successfully.");
+            // Exit the application.
             Console.WriteLine("Thank you for using the Inventory Management System.");
             running = false;
             break;
 
         default:
-            Console.WriteLine("Invalid selection. Please enter a number from 0 to 9.");
+            Console.WriteLine("Invalid selection. Please enter a number from 0 to 10.");
             break;
     }
 }
@@ -179,117 +110,6 @@ static void DisplayProducts(List<Product> products)
         DisplayProduct(product);
     }
 }
-
-
-// This function adds a new product to the inventory.
-static void AddProduct(List<Product> products)
-{
-    // Display the title for the Add Product section.
-    Console.WriteLine("ADD PRODUCT");
-    Console.WriteLine("------------------------------------");
-
-    // Ask the user to enter the product's SKU.
-    Console.Write("Enter SKU: ");
-    string? sku = Console.ReadLine();
-
-    // Ask the user to enter the product's name.
-    Console.Write("Enter product name: ");
-    string? name = Console.ReadLine();
-
-    // Ask the user to enter the product's category.
-    Console.Write("Enter category: ");
-    string? category = Console.ReadLine();
-
-    // Declare a variable to store the product's price.
-    decimal price;
-
-    // Keep asking for a price until the user enters a valid value.
-    while (true)
-    {
-        Console.Write("Enter price: $");
-        string? input = Console.ReadLine();
-
-        // Check that the price is a valid number and is not negative.
-        if (decimal.TryParse(input, out price) && price >= 0)
-        {
-            // Exit the loop when a valid price is entered.
-            break;
-        }
-
-        // Display an error message if the price is invalid.
-        Console.WriteLine("Invalid price. Please enter a valid number.");
-    }
-
-    // Declare a variable to store the product's quantity.
-    int quantity;
-
-    // Keep asking for a quantity until the user enters a valid value.
-    while (true)
-    {
-        Console.Write("Enter quantity: ");
-        string? input = Console.ReadLine();
-
-        // Check that the quantity is a whole number and is not negative.
-        if (int.TryParse(input, out quantity) && quantity >= 0)
-        {
-            // Exit the loop when a valid quantity is entered.
-            break;
-        }
-
-        // Display an error message if the quantity is invalid.
-        Console.WriteLine("Invalid quantity. Please enter a whole number.");
-    }
-
-    // Declare a variable to store the product's reorder level.
-    int reorderLevel;
-
-    // Keep asking until the user enters a valid reorder level.
-    while (true)
-    {
-        Console.Write("Enter reorder level: ");
-        string? input = Console.ReadLine();
-
-        // Check that the reorder level is a whole number and is not negative.
-        if (int.TryParse(input, out reorderLevel) && reorderLevel >= 0)
-        {
-            // Exit the loop when a valid reorder level is entered.
-            break;
-        }
-
-        // Display an error message if the reorder level is invalid.
-        Console.WriteLine("Invalid reorder level. Please enter a whole number.");
-    }
-
-    // Set the starting product ID to 1.
-    int newId = 1;
-
-    // Check if there are already products in the inventory.
-    if (products.Count > 0)
-    {
-        // Find the highest existing product ID and add 1 to create a new ID.
-        newId = products.Max(product => product.Id) + 1;
-    }
-
-    // Create a new product using the information entered by the user.
-    Product newProduct = new Product
-    {
-        Id = newId,
-        Sku = sku ?? "",
-        Name = name ?? "",
-        Category = category ?? "",
-        Price = price,
-        Quantity = quantity,
-        ReorderLevel = reorderLevel
-    };
-
-    // Add the new product to the inventory list.
-    products.Add(newProduct);
-
-    // Display a message confirming that the product was added successfully.
-    Console.WriteLine();
-    Console.WriteLine($"Product '{newProduct.Name}' added successfully.");
-}
-
 
 
 // This function updates an existing product in the inventory.
@@ -459,65 +279,6 @@ static void UpdateProductInDatabase()
     catch (OverflowException)
     {
         Console.WriteLine("The product price is too large.");
-    }
-}
-
-
-// This function deletes an existing product from the inventory.
-static void DeleteProduct(List<Product> products)
-{
-    // Display the title for the Delete Product section.
-    Console.WriteLine("DELETE PRODUCT");
-    Console.WriteLine("------------------------------------");
-
-    // Ask the user to enter the ID of the product they want to delete.
-    Console.Write("Enter product ID to delete: ");
-    string? input = Console.ReadLine();
-
-    // Check if the entered ID is a valid whole number.
-    if (!int.TryParse(input, out int id))
-    {
-        // Display an error message and exit the function if the ID is invalid.
-        Console.WriteLine("Invalid ID. Please enter a whole number.");
-        return;
-    }
-
-    // Search the inventory list for a product that matches the entered ID.
-    Product? productToDelete = products.Find(product => product.Id == id);
-
-    // Check if the product was found in the inventory.
-    if (productToDelete == null)
-    {
-        // Display an error message and exit if the product does not exist.
-        Console.WriteLine($"Product with ID {id} was not found.");
-        return;
-    }
-
-    // Display the selected product's information before deleting it.
-    Console.WriteLine();
-    Console.WriteLine($"Product: {productToDelete.Name}");
-    Console.WriteLine($"SKU: {productToDelete.Sku}");
-    Console.WriteLine($"Price: ${productToDelete.Price:F2}");
-    Console.WriteLine($"Quantity: {productToDelete.Quantity}");
-    Console.WriteLine();
-
-    // Ask the user to confirm if they want to delete the selected product.
-    Console.Write($"Are you sure you want to delete '{productToDelete.Name}'? (y/n): ");
-    string? confirmation = Console.ReadLine();
-
-    // Check if the user entered "y" to confirm the deletion.
-    if (confirmation?.ToLower() == "y")
-    {
-        // Remove the selected product from the inventory list.
-        products.Remove(productToDelete);
-
-        // Display a message confirming that the product was deleted.
-        Console.WriteLine($"Product '{productToDelete.Name}' deleted successfully.");
-    }
-    else
-    {
-        // Cancel the deletion if the user does not confirm.
-        Console.WriteLine("Delete canceled.");
     }
 }
 
