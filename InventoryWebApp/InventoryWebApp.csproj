@@ -1,3 +1,4 @@
+
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
@@ -5,5 +6,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../Product.cs" Link="Models/Product.cs" />
+    <Compile Include="../DatabaseManager.cs" Link="Data/DatabaseManager.cs" />
+  </ItemGroup>
 
 </Project>
+

@@ -2,8 +2,27 @@ using Microsoft.Data.Sqlite;
 
 public static class DatabaseManager
 {
-    // Defines the SQLite database file.
-    private const string ConnectionString = "Data Source=inventory.db";
+
+    // Defines the default SQLite database connection string.
+    private static string ConnectionString = "Data Source=inventory.db";
+
+    // Configures the database connection for different applications.
+    public static void ConfigureDatabase(
+        string databasePath,
+        bool readOnly = false)
+    {
+        SqliteConnectionStringBuilder builder = new()
+        {
+            DataSource = Path.GetFullPath(databasePath),
+            Mode = readOnly
+                ? SqliteOpenMode.ReadOnly
+                : SqliteOpenMode.ReadWriteCreate,
+            ForeignKeys = true
+        };
+
+        ConnectionString = builder.ToString();
+    }
+
 
     // Creates the database tables if they do not already exist.
     public static void InitializeDatabase()
