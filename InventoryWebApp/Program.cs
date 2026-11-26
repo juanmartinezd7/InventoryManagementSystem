@@ -24,8 +24,8 @@ if (!File.Exists(databasePath))
     );
 }
 
-// Configure SQLite in read-only mode for initial testing.
-DatabaseManager.ConfigureDatabase(databasePath, readOnly: true);
+// Configure SQLite to allow reading and writing inventory data.
+DatabaseManager.ConfigureDatabase(databasePath, readOnly: false);
 
 // Display the database location in the terminal.
 app.Logger.LogInformation("Inventory database: {DatabasePath}", databasePath);

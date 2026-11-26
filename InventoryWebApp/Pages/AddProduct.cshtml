@@ -1,0 +1,66 @@
+@page
+@model AddProductModel
+@{
+    ViewData["Title"] = "Add Product";
+}
+
+<h1>Add Product</h1>
+
+<p>Enter the information for a new inventory product.</p>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert alert-info">
+        @Model.Message
+    </div>
+}
+
+<form method="post">
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="NewProduct.Sku" class="form-label">SKU</label>
+        <input asp-for="NewProduct.Sku" class="form-control" />
+        <span asp-validation-for="NewProduct.Sku" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewProduct.Name" class="form-label">Product Name</label>
+        <input asp-for="NewProduct.Name" class="form-control" />
+        <span asp-validation-for="NewProduct.Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewProduct.Category" class="form-label">Category</label>
+        <input asp-for="NewProduct.Category" class="form-control" />
+        <span asp-validation-for="NewProduct.Category" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewProduct.Price" class="form-label">Price ($)</label>
+        <input asp-for="NewProduct.Price" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="NewProduct.Price" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewProduct.Quantity" class="form-label">Quantity</label>
+        <input asp-for="NewProduct.Quantity" class="form-control" />
+        <span asp-validation-for="NewProduct.Quantity" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewProduct.ReorderLevel" class="form-label">Reorder Level</label>
+        <input asp-for="NewProduct.ReorderLevel" class="form-control" />
+        <span asp-validation-for="NewProduct.ReorderLevel" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Add Product
+    </button>
+
+    <a asp-page="/Inventory" class="btn btn-secondary">
+        Cancel
+    </a>
+
+</form>
